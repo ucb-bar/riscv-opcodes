@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from parse import *
+from .parse import *
 import logging
 import unittest
 

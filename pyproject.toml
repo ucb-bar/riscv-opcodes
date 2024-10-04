@@ -1,0 +1,26 @@
+[project]
+name = "riscv-opcodes"
+version = "0.1.0"
+description = "Machine readable information about RISC-V instruction opcodes"
+dependencies = [
+    "PyYAML>=6.0.0, <7"
+]
+readme = "README.md"
+requires-python = ">= 3.7"
+
+[project.scripts]
+riscv_opcodes = "riscv_opcodes.parse:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/riscv_opcodes"]

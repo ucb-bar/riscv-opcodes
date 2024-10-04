@@ -1,6 +1,6 @@
 import re
 import csv
-
+from importlib.resources import open_text
 
 overlapping_extensions = {
     'rv_zcmt': {'rv_c_d'},
@@ -42,14 +42,14 @@ def read_csv(filename):
     """
     Reads a CSV file and returns a list of tuples.
     Each tuple contains an integer value (from the first column) and a string (from the second column).
-    
+
     Args:
         filename (str): The name of the CSV file to read.
-    
+
     Returns:
         list of tuple: A list of (int, str) tuples extracted from the CSV file.
     """
-    with open(filename) as f:
+    with open_text("riscv_opcodes.opcodes", filename) as f:
         csv_reader = csv.reader(f, skipinitialspace=True)
         return [(int(row[0], 0), row[1]) for row in csv_reader]
 
@@ -58,7 +58,7 @@ csrs = read_csv("csrs.csv")
 csrs32 = read_csv("csrs32.csv")
 
 arg_lut = {}
-with open("arg_lut.csv") as f:
+with open_text("riscv_opcodes.opcodes", "arg_lut.csv") as f:
     csv_reader = csv.reader(f, skipinitialspace=True)
     for row in csv_reader:
         k = row[0]
