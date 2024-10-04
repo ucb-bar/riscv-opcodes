@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from constants import *
+from .constants import *
 import copy
 import re
 import glob
@@ -10,6 +10,9 @@ import logging
 import collections
 import yaml
 import sys
+
+from importlib.resources import open_text, read_text, contents
+from fnmatch import fnmatch
 
 pp = pprint.PrettyPrinter(indent=2)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:: %(message)s')
@@ -118,7 +121,7 @@ def process_enc_line(line, ext):
                 existing_arg, new_arg = parts
                 if existing_arg in arg_lut:
                     arg_lut[a] = arg_lut[existing_arg]
-                
+
                 else:
                     logging.error(f' Found field {existing_arg} in variable {a} in instruction {name} whose mapping in arg_lut does not exist')
                     raise SystemExit(1)
@@ -242,19 +245,20 @@ def create_inst_dict(file_filter, include_pseudo=False, include_pseudo_ops=[]):
 
 
     '''
-    opcodes_dir = os.path.dirname(os.path.realpath(__file__))
     instr_dict = {}
 
     # file_names contains all files to be parsed in the riscv-opcodes directory
     file_names = []
-    for fil in file_filter:
-        file_names += glob.glob(f'{opcodes_dir}/{fil}')
+    for package in ["riscv_opcodes.opcodes.ratified", "riscv_opcodes.opcodes.unratified"]:
+        for file in contents(package):
+            if any(fnmatch(file, fil) for fil in file_filter):
+                file_names += file
     file_names.sort(reverse=True)
     # first pass if for standard/regular instructions
     logging.debug('Collecting standard instructions first')
     for f in file_names:
         logging.debug(f'Parsing File: {f} for standard instructions')
-        with open(f) as fp:
+        with open_text(f) as fp:
             lines = (line.rstrip()
                      for line in fp)  # All lines including the blank ones
             lines = list(line for line in lines if line)  # Non-blank lines
@@ -952,8 +956,7 @@ def make_c(instr_dict):
         mask = ((1 << (end - begin + 1)) - 1) << begin
         arg_str += f"#define INSN_FIELD_{sanitized_name.upper()} {hex(mask)}\n"
 
-    with open(f'{os.path.dirname(__file__)}/encoding.h', 'r') as file:
-        enc_header = file.read()
+    enc_header = read_text("riscv_opcodes", "encoding.h")
 
     commit = os.popen('git log -1 --format="format:%h"').read()
 
@@ -1027,7 +1030,7 @@ func encode(a obj.As) *inst {
         instr_str += f'''  case A{i.upper().replace("_","")}:
     return &inst{{ {hex(opcode)}, {hex(funct3)}, {hex(rs1)}, {hex(rs2)}, {signed(csr,12)}, {hex(funct7)} }}
 '''
-        
+
     with open('inst.go','w') as file:
         file.write(prelude)
         file.write(instr_str)
@@ -1046,7 +1049,7 @@ def signed(value, width):
     return value - (1<<width)
 
 
-if __name__ == "__main__":
+def main():
     print(f'Running with args : {sys.argv}')
 
     extensions = sys.argv[1:]
@@ -1066,7 +1069,7 @@ if __name__ == "__main__":
     instr_dict = collections.OrderedDict(sorted(instr_dict.items()))
 
     if '-c' in sys.argv[1:]:
-        instr_dict_c = create_inst_dict(extensions, False, 
+        instr_dict_c = create_inst_dict(extensions, False,
                                         include_pseudo_ops=emitted_pseudo_ops)
         instr_dict_c = collections.OrderedDict(sorted(instr_dict_c.items()))
         make_c(instr_dict_c)
@@ -1097,3 +1100,7 @@ if __name__ == "__main__":
         logging.info('instr-table.tex generated successfully')
         make_priv_latex_table()
         logging.info('priv-instr-table.tex generated successfully')
+
+
+if __name__ == "__main__":
+    main()

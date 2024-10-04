@@ -11,3 +11,5 @@ inst.sverilog
 instr_dict.yaml
 
 __pycache__/
+
+/.venv

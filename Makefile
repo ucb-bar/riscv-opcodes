@@ -5,35 +5,36 @@ ENV_H := ../riscv-tests/env/encoding.h
 OPENOCD_H := ../riscv-openocd/src/target/riscv/encoding.h
 INSTALL_HEADER_FILES := $(ISASIM_H) $(PK_H) $(ENV_H) $(OPENOCD_H)
 
+.PHONY : default
 default: everything
 
 .PHONY : everything
 everything:
-	@./parse.py -c -go -chisel -sverilog -rust -latex -spinalhdl $(EXTENSIONS)
+	@./parse.sh -c -go -chisel -sverilog -rust -latex -spinalhdl $(EXTENSIONS)
 
 .PHONY : encoding.out.h
 encoding.out.h:
-	@./parse.py -c rv* unratified/rv_* unratified/rv32* unratified/rv64*
+	@./parse.sh -c rv* unratified/rv_* unratified/rv32* unratified/rv64*
 
 .PHONY : inst.chisel
 inst.chisel:
-	@./parse.py -chisel $(EXTENSIONS)
+	@./parse.sh -chisel $(EXTENSIONS)
 
 .PHONY : inst.go
 inst.go:
-	@./parse.py -go $(EXTENSIONS)
+	@./parse.sh -go $(EXTENSIONS)
 
 .PHONY : latex
 latex:
-	@./parse.py -latex $(EXTENSIONS)
+	@./parse.sh -latex $(EXTENSIONS)
 
 .PHONY : inst.sverilog
 inst.sverilog:
-	@./parse.py -sverilog $(EXTENSIONS)
+	@./parse.sh -sverilog $(EXTENSIONS)
 
 .PHONY : inst.rs
 inst.rs:
-	@./parse.py -rust $(EXTENSIONS)
+	@./parse.sh -rust $(EXTENSIONS)
 
 .PHONY : clean
 clean:
@@ -51,4 +52,4 @@ priv-instr-table.tex: latex
 
 .PHONY: inst.spinalhdl
 inst.spinalhdl:
-	@./parse.py -spinalhdl $(EXTENSIONS)
+	@./parse.sh -spinalhdl $(EXTENSIONS)
